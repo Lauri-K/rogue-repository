@@ -30,7 +30,6 @@ namespace Rogue
         public void Run()
         {
             Console.CursorVisible = false;
-
             Console.WindowWidth = 60;
             Console.WindowHeight = 26;
 

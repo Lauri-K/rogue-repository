@@ -144,7 +144,7 @@ namespace Rogue
             for (int i = 0; i < enemies.Count; i++)
             {
                 Enemy currentEnemy = enemies[i];
-                Vector2 enemyPosition = currentEnemy.position;
+                Vector2 enemyPosition = currentEnemy.Position;
                 int enemySpriteIndex = currentEnemy.drawIndex;
                 Raylib.DrawTextureV(Game.enemyTexture, enemyPosition, Raylib.WHITE);
                 Enemytile = enemyPosition;

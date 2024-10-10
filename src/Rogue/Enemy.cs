@@ -10,14 +10,14 @@ namespace Rogue
 {
     internal class Enemy
     {
-        public string name;
-        public Vector2 position;
+        public string Name;
+        public Vector2 Position;
         public Texture graphics;
         public int drawIndex;
         public Enemy(string name, Vector2 position, Texture graphics, int drawIndex)
         {
-            this.name = name;
-            this.position = position;
+            this.Name = name;
+            this.Position = position;
             this.graphics = graphics;
             this.drawIndex = drawIndex;
         }
