@@ -102,14 +102,17 @@ namespace Rogue
                 {
                     int index = col + row * mapWidth;
                     int tileId = mapTiles[index];
-                    int spriteId = tileId -1;
-                    int pixelX = col * Game.tileSize;
-                    int pixelY = row * Game.tileSize;
+                    int spriteId = tileId -1; //index alkaa 0:sta
+                    var sourceRow = (int) (spriteId / 12);
+                    var sourceCol = spriteId - (sourceRow - 1) * 12;
+
+                    int pixelX = sourceCol * Game.tileSize;
+                    int pixelY = sourceRow * Game.tileSize;
                     //int imagePixelX = tileIndex % Game.imagesPerRow * Game.tileSize;
                     //int imagePixelY = tileIndex / Game.imagesPerRow * Game.tileSize;
                     //Rectangle mapRect = new Rectangle(imagePixelX, imagePixelY, Game.tileSize, Game.tileSize);
 
-                    Rectangle rectangle = new Rectangle(pixelY, pixelX, Game.tileSize, Game.tileSize);
+                    Rectangle rectangle = new Rectangle(pixelX, pixelY, Game.tileSize, Game.tileSize);
                     //Raylib.DrawTextureRec(Game.tileMapTexture, rectangle, GetSpritePosition(tileId, mapWidth), Raylib.WHITE);
                     Raylib.DrawTextureRec(Game.tileMapTexture, rectangle, new Vector2(col, row)* Game.tileSize, Raylib.WHITE);
 
