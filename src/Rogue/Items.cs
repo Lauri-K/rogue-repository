@@ -11,16 +11,14 @@ namespace Rogue
     internal class Items
     {
         public string name;
-        public Vector2 position;
-        public Texture graphics;
-        public int drawIndex;
+        public Point2D position;
+        public int spriteIndex;
 
-        public Items(string name, Vector2 position, Texture graphics, int drawIndex)
+        public Items(string name, Point2D position, int drawIndex)
         {
             this.name = name;
             this.position = position;
-            this.graphics = graphics;
-            this.drawIndex = drawIndex;
+            this.spriteIndex = drawIndex;
         }
     }
 }

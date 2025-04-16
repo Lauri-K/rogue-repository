@@ -1,215 +1,253 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Linq;
 using System.Numerics;
-using System.Reflection.Metadata.Ecma335;
-using System.Runtime.CompilerServices;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using TurboMapReader;
 using ZeroElectric.Vinculum;
+using static System.Net.Mime.MediaTypeNames;
+using TurboMapReader;
 
 namespace Rogue
 {
     internal class Map
     {
-
-        public int mapWidth = 8;
-        public int[] mapTiles;
+        public int mapWidth;
         public MapLayer[] layers;
-        public List<Enemy> enemies;
-        public List<Items> items;
-        public Vector2 Enemytile;
-        public Vector2 Itemtile;
-        public enum MapTile : int
-        {
-            Floor = 48,
-            Wall = 40
-        }
 
-        public static List<int> WallTileNumbers;
-        public static List<int> FloorTileNumbers;
 
-        public Map()
+        List<Enemy>? enemies;
+        List<Item>? items;
+
+
+        public struct Enemy
         {
-            mapWidth = 1;
-            layers = new MapLayer[3];
-            for (int i = 0; i < layers.Length; i++)
+            public string name;
+            public Point2D position;
+            public Texture EnemySprite;
+            public Enemy(string pname, Point2D pposition, Texture Sprite)
             {
-                layers[i] = new MapLayer(mapWidth);
+                this.name = pname;
+                this.position = pposition;
+                this.EnemySprite = Sprite;
             }
-            enemies = new List<Enemy>() { };
-            items = new List<Items>() { };
+
         }
-        public MapLayer GetLayer(string layerName)
+        public struct Item
         {
-            for (int i = 0; i < layers.Length; i++)
+            public string name;
+            public Point2D position;
+            public Item(string pname, Point2D pposition, Texture item_image)
             {
-                if (layers[i].name == layerName)
+                this.name = pname;
+                this.position = pposition;
+            }
+
+        }
+
+        public Rectangle SetIndex(int imagesPerRow, int index)
+        {
+            float tileSize = 16f;
+            float imagePixelX = index % imagesPerRow * tileSize;
+            float imagePixelY = (int)(index / imagesPerRow) * tileSize;
+
+            Rectangle imageRect = new Rectangle(imagePixelX, imagePixelY, Game.tileSize, Game.tileSize);
+
+            return imageRect;
+        }
+
+
+        public void DrawMap()
+        {
+
+            MapLayer groundLayer = layers[0];
+
+            int[] groundTiles = groundLayer.mapTiles;
+            Texture Image = Game.atlasImage;
+            int mapHeight = groundTiles.Length / mapWidth;
+            for (int y = 0; y < mapHeight; y++)
+            {
+                for (int x = 0; x < mapWidth; x++)
                 {
-                    return layers[i];
+                    int tileId = groundTiles[x + y * mapWidth];
+                    Vector2 pos = new Vector2(x * Game.tileSize, y * Game.tileSize);
+                    Rectangle rect = SetIndex(12, tileId - 1);
+                    Raylib.DrawTextureRec(Image, rect, pos, Raylib.WHITE);
                 }
             }
-            Console.WriteLine($"Error: No layer with name: {layerName}");
-            return null;
+            LoadEnemiesAndItems();
         }
-
-        public MapTile GetTileAt(int x, int y)
+        public void DrawEnemy(Texture Sprite, Point2D position)
         {
-            WallTileNumbers = new List<int> { 0, 1, 2, 3, 4, 5, 6, 7, 8, 12, 13, 14, 15, 16, 17, 18, 19, 20, 24, 25, 26, 27, 28, 29, 40, 57, 58, 59 };
-            FloorTileNumbers = new List<int> { 49 };
-            // Calculate index: index = x + y * mapWidth
-            int indexInMap = x + y * mapWidth;
+            int imagesPerRow = 12;
+            float tileSize = 16;
 
-            // Use the index to get a map tile from map's array
-            MapLayer groundLayer = GetLayer("ground");
-            int[] mapTiles = groundLayer.mapTiles;
-            int tileId = mapTiles[indexInMap];
+            int atlasIndex = 0 + 10 * imagesPerRow;
 
-            if (WallTileNumbers.Contains(tileId))
-            {
-                // Is a wall
-                return MapTile.Wall;
-            }
-            else if (FloorTileNumbers.Contains(tileId))
-            {
-                // One of the floortiles
-                return MapTile.Floor;
-            }
-            else
-            {
-                // Count everything else as wall for now.
-                return MapTile.Wall;
-            }
+            int imageX = atlasIndex % imagesPerRow;
+            int imageY = (int)(atlasIndex / imagesPerRow);
+            float imagePixelX = imageX * tileSize;
+            float imagePixelY = imageY * tileSize;
+
+
+            Rectangle imageRect = new Rectangle(imagePixelX, imagePixelY, Game.tileSize, Game.tileSize);
+
+            // Laske paikka ruudulla
+            int pixelPositionX = position.x * Game.tileSize;
+            int pixelPositionY = position.y * Game.tileSize;
+            Vector2 pixelPosition = new Vector2(pixelPositionX, pixelPositionY);
+            Raylib.DrawTextureRec(Sprite, imageRect, pixelPosition, Raylib.WHITE);
         }
-        public Vector2 GetSpritePosition(int spriteIndex, int spritesPerRow)
+        public void DrawItem(Texture Sprite, Point2D position)
         {
-            float spritePixelX = (spriteIndex % spritesPerRow) * Game.tileSize;
-            float spritePixelY = (int)(spriteIndex / spritesPerRow) * Game.tileSize;
-            return new Vector2(spritePixelX, spritePixelY);
+            int imagesPerRow = 12;
+            float tileSize = 16f;
+
+            int atlasIndex = 1 + 5 * imagesPerRow;
+
+            int imageX = atlasIndex % imagesPerRow;
+            int imageY = (int)(atlasIndex / imagesPerRow);
+            float imagePixelX = imageX * tileSize;
+            float imagePixelY = imageY * tileSize;
+
+
+            Rectangle imageRect = new Rectangle(imagePixelX, imagePixelY, Game.tileSize, Game.tileSize);
+
+            // Laske paikka ruudulla
+            int pixelPositionX = position.x * Game.tileSize;
+            int pixelPositionY = position.y * Game.tileSize;
+            Vector2 pixelPosition = new Vector2(pixelPositionX, pixelPositionY);
+            Raylib.DrawTextureRec(Sprite, imageRect, pixelPosition, Raylib.WHITE);
+
         }
 
-        public void draw()
-        {
-            MapLayer groundLayer = GetLayer("ground");
-            mapTiles = groundLayer.mapTiles;
-            int mapHeight = mapTiles.Length / mapWidth;
-            for (int row = 0; row < mapHeight; row++)
-            {
-                for (int col = 0; col < mapWidth; col++)
-                {
-                    int index = col + row * mapWidth;
-                    int tileId = mapTiles[index];
-                    int spriteId = tileId -1; //index alkaa 0:sta
-                    var sourceRow = (int) (spriteId / 12);
-                    var sourceCol = spriteId - (sourceRow - 1) * 12;
 
-                    int pixelX = sourceCol * Game.tileSize;
-                    int pixelY = sourceRow * Game.tileSize;
-                    //int imagePixelX = tileIndex % Game.imagesPerRow * Game.tileSize;
-                    //int imagePixelY = tileIndex / Game.imagesPerRow * Game.tileSize;
-                    //Rectangle mapRect = new Rectangle(imagePixelX, imagePixelY, Game.tileSize, Game.tileSize);
-
-                    Rectangle rectangle = new Rectangle(pixelX, pixelY, Game.tileSize, Game.tileSize);
-                    //Raylib.DrawTextureRec(Game.tileMapTexture, rectangle, GetSpritePosition(tileId, mapWidth), Raylib.WHITE);
-                    Raylib.DrawTextureRec(Game.tileMapTexture, rectangle, new Vector2(col, row)* Game.tileSize, Raylib.WHITE);
-
-                    /*Console.SetCursorPosition(col, row);
-                    Color tilecolor = Raylib.GREEN;
-                    switch (tileId)
-                    {
-                        case 1:
-                            tilecolor = Raylib.GRAY;
-                            Console.Write(".");
-                            break;
-                        case 2:
-                            tilecolor = Raylib.BROWN;
-                            Console.Write("#");
-                            break;
-                        default:
-                            Console.Write(" ");
-                            break;
-                    }
-                    Raylib.DrawRectangle(pixelX, pixelY, Game.tileSize, Game.tileSize, tilecolor);*/
-                }
-            }
-
-            for (int i = 0; i < items.Count; i++)
-            {
-                Items currentItems = items[i];
-                Vector2 itemPosition = currentItems.position;
-                int itemSpriteindex = currentItems.drawIndex;
-                Raylib.DrawTextureV(Game.itemTexture, itemPosition, Raylib.WHITE);
-                Itemtile = itemPosition;
-            }
-            for (int i = 0; i < enemies.Count; i++)
-            {
-                Enemy currentEnemy = enemies[i];
-                Vector2 enemyPosition = currentEnemy.Position;
-                int enemySpriteIndex = currentEnemy.drawIndex;
-                Raylib.DrawTextureV(Game.enemyTexture, enemyPosition, Raylib.WHITE);
-                Enemytile = enemyPosition;
-            }
-        }
-        public void DrawEnemiesAndItems()
+        public void LoadEnemiesAndItems()
         {
             enemies = new List<Enemy>();
 
 
-            MapLayer enemyLayer = GetLayer("enemies");
-
+            MapLayer enemyLayer = layers[2];
             int[] enemyTiles = enemyLayer.mapTiles;
             int mapHeight = enemyTiles.Length / mapWidth;
+            Texture enemy_image = Game.atlasImage;
             for (int y = 0; y < mapHeight; y++)
             {
                 for (int x = 0; x < mapWidth; x++)
                 {
-                    Vector2 position = new Vector2(x * Game.tileSize, y * Game.tileSize);
-
+                    Point2D position = new Point2D(x, y);
+                    Vector2 Enemypos = new Vector2(x * Game.tileSize, y * Game.tileSize);
                     int index = x + y * mapWidth;
-                    int tileId = enemyTiles[index];
-                    switch (tileId)
+                    int EnemytileId = enemyTiles[index];
+                    switch (EnemytileId)
                     {
                         case 0:
+                            // ei mitään tässä kohtaa
                             break;
-                        case 1:
-                            enemies.Add(new Enemy("Orc", position, Game.enemyTexture, tileId));
+                        case 121:
+                            enemies.Add(new Enemy("Bat", position, enemy_image));
                             break;
-                        case 2:
+                        case 109:
+                            enemies.Add(new Enemy("Ghost", position, enemy_image));
                             break;
+                    }
+                    if (EnemytileId != 0)
+                    {
+
+                        Rectangle Enemyrect = SetIndex(12, EnemytileId - 1);
+                        Raylib.DrawTextureRec(enemy_image, Enemyrect, Enemypos, Raylib.WHITE);
                     }
                 }
             }
 
-            items = new List<Items>();
 
+            items = new List<Item>();
 
-            MapLayer itemLayer = GetLayer("items");
-
+            MapLayer itemLayer = layers[1];
+            Texture item_image = Game.atlasImage;
             int[] itemTiles = itemLayer.mapTiles;
-            mapHeight = itemTiles.Length / mapWidth;
-            for (int y = 0; y < mapHeight; y++)
+            int mapHeight1 = itemTiles.Length / mapWidth;
+            for (int y = 0; y < mapHeight1; y++)
             {
                 for (int x = 0; x < mapWidth; x++)
                 {
-                    Vector2 position = new Vector2 (x * Game.tileSize, y * Game.tileSize);
-
+                    Point2D position = new Point2D(x, y);
+                    Vector2 Itempos = new Vector2(x * Game.tileSize, y * Game.tileSize);
                     int index = x + y * mapWidth;
-                    int tileId = itemTiles[index];
-                    switch (tileId)
+                    int ItemtileId = itemTiles[index];
+                    switch (ItemtileId)
                     {
+
                         case 0:
-                            break; 
-                        case 1:
-                            items.Add(new Items("name", position, Game.itemTexture, tileId));
-                            break; 
-                        case 2:
+                            // ei mitään tässä kohtaa
                             break;
+                        case 1:
+                            items.Add(new Item("Sword", position, item_image));
+                            break;
+                        case 2:
+                            items.Add(new Item("Spear", position, item_image));
+                            break;
+                        case 3:
+                            items.Add(new Item("Ring", position, item_image));
+                            break;
+                        case 4:
+                            items.Add(new Item("Armor", position, item_image));
+                            break;
+                        case 5:
+                            items.Add(new Item("Shield", position, item_image));
+                            break;
+                        case 6:
+                            items.Add(new Item("Helmet", position, item_image));
+                            break;
+                        case 62:
+                            items.Add(new Item("ItemBox", position, item_image));
+                            break;
+
+
+
+                    }
+                    if (ItemtileId != 0)
+                    {
+
+                        Rectangle Enemyrect = SetIndex(12, ItemtileId - 1);
+                        Raylib.DrawTextureRec(enemy_image, Enemyrect, Itempos, Raylib.WHITE);
                     }
                 }
             }
+        }
+
+
+        public Enemy? GetEnemyAt(Point2D position)
+        {
+            foreach (var Enemy in enemies)
+            {
+
+                Vector2 Playerv2 = new Vector2(position.x, position.y);
+                Vector2 Enemyv2 = new Vector2(Enemy.position.x, Enemy.position.y);
+                if (Playerv2 == Enemyv2)
+                {
+                    Console.WriteLine("Enemy Found");
+                    return Enemy;
+                }
+            }
+            return null;
+        }
+        public Item? GetItemAt(Point2D position)
+        {
+            foreach (var Item in items)
+            {
+                Vector2 Playerv2 = new Vector2(position.x, position.y);
+                Vector2 Itemv2 = new Vector2(Item.position.x, Item.position.y);
+                if (Playerv2 == Itemv2)
+                {
+                    Console.WriteLine("Item Found");
+                    return Item;
+                }
+            }
+            return null;
         }
 
     }

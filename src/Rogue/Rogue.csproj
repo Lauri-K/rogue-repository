@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\RayGuiCreator\RayGuiCreator\RayGuiCreator.csproj" />
     <ProjectReference Include="..\..\..\TurboMapReader\TurboMapReader\TurboMapReader.csproj" />
   </ItemGroup>
 
@@ -26,7 +27,7 @@
     <None Update="Images\PlayerImage.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Images\tilemap_packed.png">
+    <None Update="Images\MAP.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Maps\mapfile.json">

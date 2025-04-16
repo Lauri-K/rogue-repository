@@ -1,25 +1,24 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
-using System.Security.Cryptography.X509Certificates;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
-using System.IO;
 using Newtonsoft.Json;
-using ZeroElectric.Vinculum;
+using System.IO;
 using TurboMapReader;
 
 namespace Rogue
 {
     internal class MapLoader
     {
-        public Map loadTestMap()
+        public Map LoadTestMap()
         {
             Map test = new Map();
             test.mapWidth = 8;
-            test.mapTiles = new int[] {
+            test.layers[0].mapTiles = new int[] {
             2, 2, 2, 2, 2, 2, 2, 2,
             2, 1, 1, 2, 1, 1, 1, 2,
             2, 1, 1, 2, 1, 1, 1, 2,
@@ -27,11 +26,11 @@ namespace Rogue
             2, 2, 2, 2, 1, 1, 1, 2,
             2, 1, 1, 1, 1, 1, 1, 2,
             2, 2, 2, 2, 2, 2, 2, 2 };
-
             return test;
+
         }
 
-       /* public void testFileReading(string filename)
+        public void TestFileReading(string filename)
         {
             using (StreamReader reader = File.OpenText(filename))
             {
@@ -44,100 +43,44 @@ namespace Rogue
                     line = reader.ReadLine();
                     if (line == null)
                     {
-                        break;
+                        break; // End of file
                     }
                     Console.WriteLine(line);
                 }
-
             }
-        } */
+        }
 
-        public Map loadMapFromFile(string filename)
+        public Map LoadLayeredMap(string filename)
         {
+            Map map = new Map();
             bool fileFound = File.Exists(filename);
             if (fileFound == false)
             {
                 Console.WriteLine($"File {filename} not found");
-                return loadTestMap();
+                return LoadTestMap(); // Return the test map as fallback
             }
-
-            // Lataa tiedosto käyttäen TurboMapReaderia   
-            TiledMap mapMadeInTiled = MapReader.LoadMapFromFile(filename);
-
-            // Tarkista onnistuiko lataaminen
-            if (mapMadeInTiled != null)
+            using (StreamReader reader = File.OpenText(filename))
             {
-                // Muuta Map olioksi ja palauta
-                return ConvertTiledMapToMap(mapMadeInTiled);
+                var fileContents = reader.ReadToEnd();
+                return JsonConvert.DeserializeObject<Map>(fileContents);
             }
-            else
-            {
-                // OH NO!
-                return null;
-            }
-
         }
 
-        public Map ConvertTiledMapToMap(TiledMap turboMap)
+        public Map ToMap(Map map, TiledMap Tmap)
         {
-            // Luo tyhjä kenttä
-            Map rogueMap = new Map();
+            map.layers[0].name = Tmap.GetLayerByName("ground").name;
+            map.layers[0].mapTiles = Tmap.GetLayerByName("ground").data;
 
-            // Muunna tason "ground" tiedot
-            TurboMapReader.MapLayer groundLayer = turboMap.GetLayerByName("ground");
+            map.layers[1].name = Tmap.GetLayerByName("items").name;
+            map.layers[1].mapTiles = Tmap.GetLayerByName("items").data;
 
-            // TODO: Lue kentän leveys. Kaikilla TurboMapReader.MapLayer olioilla on sama leveys
-            rogueMap.mapWidth = groundLayer.width;
+            map.layers[2].name = Tmap.GetLayerByName("enemies").name;
+            map.layers[2].mapTiles = Tmap.GetLayerByName("enemies").data;
 
-            // Kuinka monta kenttäpalaa tässä tasossa on?
-            int howManyTiles = groundLayer.data.Length;
-            // Taulukko jossa palat ovat
-            int[] groundTiles = groundLayer.data;
+            map.mapWidth = Tmap.width;
 
-            // Luo uusi taso tietojen perusteella
-            MapLayer myGroundLayer = new MapLayer(howManyTiles);
-            myGroundLayer.name = "ground";
+            return map;
 
-
-            //TODO: lue tason palat
-            myGroundLayer.mapTiles = groundTiles;
-
-
-            // Tallenna taso kenttään
-            rogueMap.layers[0] = myGroundLayer;
-
-            // TODO: Muunna tason "enemies" tiedot...
-            TurboMapReader.MapLayer enemyLayer = turboMap.GetLayerByName("enemies");
-
-            rogueMap.mapWidth = enemyLayer.width;
-
-            int howManyEnemyTiles = enemyLayer.data.Length;
-            int[] enemyTiles = enemyLayer.data; 
-
-            MapLayer myEnemyLayer = new MapLayer(howManyEnemyTiles);
-            myEnemyLayer.name = "enemies";
-
-            myEnemyLayer.mapTiles = enemyTiles;
-
-            rogueMap.layers[2] = myEnemyLayer;
-
-            // TODO: Muunna tason "items" tiedot...
-            TurboMapReader.MapLayer itemLayer = turboMap.GetLayerByName("items");
-
-            rogueMap.mapWidth = itemLayer.width;
-
-            int howManyItemTiles = itemLayer.data.Length;
-            int[]itemTiles = itemLayer.data;
-
-            MapLayer myItemLayer = new MapLayer(howManyItemTiles);
-            myItemLayer.name = "items";
-
-            myItemLayer.mapTiles = itemTiles;
-
-            rogueMap.layers[1] = myItemLayer;
-
-            // Lopulta palauta kenttä
-            return rogueMap;
         }
     }
 }

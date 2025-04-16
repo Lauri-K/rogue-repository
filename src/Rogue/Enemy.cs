@@ -8,18 +8,18 @@ using ZeroElectric.Vinculum;
 
 namespace Rogue
 {
-    internal class Enemy
+    public struct Enemy
     {
         public string Name;
-        public Vector2 Position;
-        public Texture graphics;
-        public int drawIndex;
-        public Enemy(string name, Vector2 position, Texture graphics, int drawIndex)
+        public Point2D Position;
+        public int Hp;
+        public int SpriteIndex;
+        public Enemy(string name, Point2D position, int hp, int spriteIndex)
         {
             this.Name = name;
             this.Position = position;
-            this.graphics = graphics;
-            this.drawIndex = drawIndex;
+            this.Hp = hp;
+            this.SpriteIndex = spriteIndex;
         }
     }
 }

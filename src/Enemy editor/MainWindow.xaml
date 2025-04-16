@@ -1,0 +1,38 @@
+﻿<Window x:Class="EnemyEditor.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:EnemyEditor"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="488" Width="800">
+    <Grid Margin="0,10,10,10" Width="780">
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" MinHeight="32" />
+            <RowDefinition />
+            <RowDefinition Height="30"/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Label Margin="0,0,0,349" Grid.RowSpan="2">Names</Label>
+        <ListBox Grid.Row="1" x:Name="EnemyList" Margin="0,0,0,13"/>
+        <Label Grid.Column="1" Margin="0,0,0,349" Grid.RowSpan="2">Information</Label>
+        <Button Grid.Row="2" Grid.Column="1" x:Name="btnAdd" Margin="0,10,0,0" Click="ButtonSaveToJson_Click" Width="184">Save To Json</Button>
+        <Label Grid.Row="2" x:Name="ErrorLable">No Error</Label>
+        <StackPanel Grid.Row="1" Grid.Column="1" Margin="5,0,0,13">
+            <Label>Enemy Name</Label>
+            <TextBox x:Name="txtName" PreviewTextInput="txtName_Validation"/>
+            <Label>Sprite ID</Label>
+            <TextBox x:Name="SpriteID" PreviewTextInput="IDBox_Validation"/>
+            <Label>Health</Label>
+            <TextBox x:Name="HP" PreviewTextInput="HP_Validation"/>
+            <Button x:Name="EnemyAdd" Margin="0,10,0,0" Click="AddEnemyToList" Width="184">Add To Enemies</Button>
+        </StackPanel>
+
+    </Grid>
+</Window>
